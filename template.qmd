@@ -19,11 +19,6 @@ format:
             - margin=1in  
         number-sections: true
         code-line-numbers: true
-    # docx: 
-    #    toc: true
-    #    fig-format: png
-    #    number-sections: true
-    #    code-line-numbers: true
 
 date-format: "ddd., MMM. D"
 
@@ -44,6 +39,8 @@ execute:
 
 Clearly define the problem statement that your chosen feature aims to address.
 Explain the significance of this problem in the context of climate risk management.
+
+The following project seeks to improve both the accuracy of storm surge inputs as well as the accuracy of the damage functions used in the decision-support tool. In the current model, storm surge is input as 
 
 ## Selected Feature
 

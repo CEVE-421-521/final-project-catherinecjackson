@@ -1,0 +1,90 @@
+Previously, to generate storm surge, we have used the following function:
+
+```{julia}
+using Turing
+using Statistics
+using MCMCChains
+using DynamicPPL
+using AdvancedHMC
+using DistributionsAD
+using Bijectors
+using Plots
+using Distributions
+using CairoMakie
+
+function draw_surge_distribution()
+    μ = rand(Normal(5, 1))
+    σ = rand(Exponential(1.25))
+    ξ = rand(Normal(0.1, 0.05))
+    return GeneralizedExtremeValue(μ, σ, ξ)
+end
+
+draw_surge_distribution()
+```
+
+Bayesian statistics is an approach to inferential statistics based on Bayes' theorem, where available knowledge about parameters in a statistical model is updated with the information in observed data. The background knowledge is expressed as a prior distribution and combined with observational data in the form of a likelihood function to determine the posterior distribution. The posterior can also be used for making predictions about future events.
+
+Bayesian statistics is a departure from classical inferential statistics that prohibits probability statements about parameters and is based on asymptotically sampling infinite samples from a theoretical population and finding parameter values that maximize the likelihood function. Mostly notorious is null-hypothesis significance testing (NHST) based on p-values. Bayesian statistics incorporate uncertainty (and prior knowledge) by allowing probability statements about parameters, and the process of parameter value inference is a direct result of the Bayes' theorem.
+
+```{julia}
+μ = rand(Normal(5, 1))
+σ = rand(Exponential(1.25))
+ξ = rand(Normal(0.1, 0.05))
+```
+
+```{julia}
+@model function surge_model(y)
+    μ ~ Normal(5, 1)
+    σ ~ Exponential(1.25)
+    ξ ~ Normal(0.1, 0.05)
+
+    for i in eachindex(y)
+        y[i] ~ GeneralizedExtremeValue(μ, σ, ξ)
+    end
+end;
+
+dataex = [3.15, 3.02, 3.199, 4.07, 2.55]
+
+
+
+model = surge_model(dataex)
+
+# Sample from the posterior
+chain = sample(model, Turing.NUTS(), 1000)
+
+```
+
+```{julia}
+summaries, quantiles = describe(chain);
+sum([idx * i for (i, idx) in enumerate(summaries[:, :mean])])
+```
+
+```{julia}
+using AlgebraOfGraphics
+
+# If you have a variable or another function named 'data' in scope, qualify this:
+params = names(chain, :parameters)
+chain_mapping =
+    mapping(params .=> "sample value") *
+    mapping(; color=:chain => nonnumeric, row=dims(1) => renamer(params))
+
+# Make sure to use the correct function from AlgebraOfGraphics:
+plt1 = AlgebraOfGraphics.data(chain) * mapping(:iteration) * chain_mapping * visual(Lines)
+plt2 = AlgebraOfGraphics.data(chain) * chain_mapping * density()
+
+f = Figure(; resolution=(800, 600))
+draw!(f[1, 1], plt1)
+draw!(f[1, 2], plt2; axis=(; ylabel="density"))
+
+display(f)
+```
+
+```{julia}
+function draw_surge_dist_bayesian()
+    # pull the new parameters from the bayesian model
+    μ = rand(chain[:μ])
+    σ = rand(chain[:σ])
+    ξ = rand(chain[:ξ])
+    return GeneralizedExtremeValue(μ, σ, ξ)
+end
+```
