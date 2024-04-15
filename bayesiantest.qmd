@@ -62,23 +62,19 @@ sum([idx * i for (i, idx) in enumerate(summaries[:, :mean])])
 
 ```{julia}
 using AlgebraOfGraphics
-using CairoMakie  # Ensuring CairoMakie is included if not already
+using CairoMakie 
 
-# Setup parameter names and mapping for the chain visualization
 params = names(chain, :parameters)
 chain_mapping = mapping(params .=> "sample value") *
                 mapping(; color=:chain => nonnumeric, row=dims(1) => renamer(params))
 
-# Use the correct 'data' function from AlgebraOfGraphics and specify which 'density' function to use
 plt1 = AlgebraOfGraphics.data(chain) * mapping(:iteration) * chain_mapping * visual(Lines)
-plt2 = AlgebraOfGraphics.data(chain) * chain_mapping * AlgebraOfGraphics.density()  # Specified package for density
+plt2 = AlgebraOfGraphics.data(chain) * chain_mapping * AlgebraOfGraphics.density()  
 
-# Create and draw the figures
 f = Figure(; resolution=(800, 600))
 draw!(f[1, 1], plt1)
 draw!(f[1, 2], plt2; axis=(; ylabel="density"))
 
-# Display the figure
 display(f)
 
 ```
