@@ -43,6 +43,8 @@ Bayesian statistics is a departure from classical inferential statistics that pr
     end
 end;
 
+
+## this should be the annual maximujm surge height.  go to the noaa website and pull the annuals.  remember that if you pull the 1hr maximum, it is averaged over that 1 hour.  try to get the smalles time interval -- 6 min?
 dataex = [3.15, 3.02, 3.199, 4.07, 2.55]
 
 
