@@ -40,7 +40,9 @@ execute:
 Clearly define the problem statement that your chosen feature aims to address.
 Explain the significance of this problem in the context of climate risk management.
 
-The following project seeks to improve both the accuracy of storm surge inputs as well as the accuracy of the damage functions used in the decision-support tool. In the current model, storm surge is input as 
+The following project seeks to improve the quantifiation of flood risk by changing the storm surge distribution to better represent the behavior at the nearest gage.  Currently, an example storm surge distribution is used as a general representation of common surge heights.  However, it is not specific to our site of interest.  Using a Bayesian methodology, this general distribution is used as the prior and data from the nearest gage, in this case Pier 21, is used as the likelihood.  The posterior distribution is then used to generate a new storm surge distribution that is more representative of the site of interest.
+
+In this way, the storm surge distribution is more accurate and can be used to better estimate the flood risk at the site of interest.  Hopefully, this allows us to approximate more accurate risk assessments.
 
 ## Selected Feature
 

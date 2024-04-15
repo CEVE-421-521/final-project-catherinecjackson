@@ -46,7 +46,6 @@ end;
 dataex = [3.15, 3.02, 3.199, 4.07, 2.55]
 
 
-
 model = surge_model(dataex)
 
 # Sample from the posterior
