@@ -60,22 +60,25 @@ sum([idx * i for (i, idx) in enumerate(summaries[:, :mean])])
 
 ```{julia}
 using AlgebraOfGraphics
+using CairoMakie  # Ensuring CairoMakie is included if not already
 
-# If you have a variable or another function named 'data' in scope, qualify this:
+# Setup parameter names and mapping for the chain visualization
 params = names(chain, :parameters)
-chain_mapping =
-    mapping(params .=> "sample value") *
-    mapping(; color=:chain => nonnumeric, row=dims(1) => renamer(params))
+chain_mapping = mapping(params .=> "sample value") *
+                mapping(; color=:chain => nonnumeric, row=dims(1) => renamer(params))
 
-# Make sure to use the correct function from AlgebraOfGraphics:
+# Use the correct 'data' function from AlgebraOfGraphics and specify which 'density' function to use
 plt1 = AlgebraOfGraphics.data(chain) * mapping(:iteration) * chain_mapping * visual(Lines)
-plt2 = AlgebraOfGraphics.data(chain) * chain_mapping * density()
+plt2 = AlgebraOfGraphics.data(chain) * chain_mapping * AlgebraOfGraphics.density()  # Specified package for density
 
+# Create and draw the figures
 f = Figure(; resolution=(800, 600))
 draw!(f[1, 1], plt1)
 draw!(f[1, 2], plt2; axis=(; ylabel="density"))
 
+# Display the figure
 display(f)
+
 ```
 
 ```{julia}
@@ -86,4 +89,32 @@ function draw_surge_dist_bayesian()
     ξ = rand(chain[:ξ])
     return GeneralizedExtremeValue(μ, σ, ξ)
 end
+```
+
+```{julia}
+# plot a GEV distribution given the three paraameters
+gev1 = draw_surge_distribution()
+gevbayes = draw_surge_dist_bayesian()
+# plot gev 1
+x = range(0, 10, length=1000)
+y = pdf(gev1, x)
+plot1 = Plots.plot(x, y, label="Original GEV", lw=2, color=:red, legend=true, xlabel="Surge Height (m)", ylabel="Density")
+
+for i = 1:10
+    gevorigfor = draw_surge_distribution()
+    y = pdf(gevorigfor, x)
+    Plots.plot!(x, y, label="Original GEV", lw=2, color=:red, legend=false)
+end
+
+x = range(0, 10, length=1000)
+y = pdf(gevbayes, x)
+Plots.plot!(x, y, label="GEV Bayesian", lw=2)
+
+for i = 1:10
+    gevbayesfor = draw_surge_dist_bayesian()
+    y = pdf(gevbayesfor, x)
+    Plots.plot!(x, y, label="GEV Bayesian", lw=2, color=:blue)
+end
+
+display(plot1)
 ```
