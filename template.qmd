@@ -1,6 +1,6 @@
 ---
 title: "Final Project Report"
-author: "Your Name (NetID)"
+author: "Catherine Jackson (ccj3)"
 jupyter: julia-1.10
 date: 2024-04-30
 
