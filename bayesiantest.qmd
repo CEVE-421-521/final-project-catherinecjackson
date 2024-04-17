@@ -44,7 +44,7 @@ Bayesian statistics is a departure from classical inferential statistics that pr
 end;
 
 
-## this should be the annual maximujm surge height.  go to the noaa website and pull the annuals.  remember that if you pull the 1hr maximum, it is averaged over that 1 hour.  try to get the smalles time interval -- 6 min?
+## this should be the annual maximujm surge height.  go to the noaa website and pull the annuals.  remember that if you pull the 1hr maximum, it is averaged over that 1 hour.  try to get the smallest time interval -- 6 min?
 dataex = [3.15, 3.02, 3.199, 4.07, 2.55]
 
 
@@ -80,11 +80,14 @@ display(f)
 ```
 
 ```{julia}
+#posterior uncertainty into the state of the world  
+
 function draw_surge_dist_bayesian()
+    randindex = rand(1:length(chain))
     # pull the new parameters from the bayesian model
-    μ = rand(chain[:μ])
-    σ = rand(chain[:σ])
-    ξ = rand(chain[:ξ])
+    μ = chain[:μ][randindex]
+    σ = chain[:σ][randindex]
+    ξ = chain[:ξ][randindex]
     return GeneralizedExtremeValue(μ, σ, ξ)
 end
 ```
