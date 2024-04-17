@@ -84,7 +84,6 @@ display(f)
 
 function draw_surge_dist_bayesian()
     randindex = rand(1:length(chain))
-    # pull the new parameters from the bayesian model
     μ = chain[:μ][randindex]
     σ = chain[:σ][randindex]
     ξ = chain[:ξ][randindex]
