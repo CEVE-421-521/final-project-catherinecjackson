@@ -20,9 +20,6 @@ format:
 
 date-format: "ddd., MMM. D"
 
-# See Quarto docs: https://quarto.org/docs/authoring/footnotes-and-citations.html
-# you can export your references from Zotero, EndNote, or other reference managers
-# from Zotero you'll need https://retorque.re/zotero-better-bibtex/
 references: references.bib
 
 # recommended, but not required
@@ -33,7 +30,7 @@ execute:
 
 # Introduction
 
-## Storm Surge Variability
+## Storm Surge Variability and Literature Review
 
 Hurricanes represent an ever-present threat to US coastlines, and these events have incredible potential to damage infrastructure and threaten lives.  In fast, @ncei2024 found that, when analyzing data from 1980 to 2024, damages from tropical cyclones and severe storms account for 51.8% and 17.3% of climate disaster-related costs.  These severe storms and their associated surge events must be better understood in order to protect communities from their damages.
 
@@ -41,10 +38,9 @@ However, both the frequency and characteristics of these storms and their associ
 
 The image below, from @Needham2012, visually shows the differences in storm surge across the Southern US coastline based on historical information and data.
 
-![](C:\Users\ccj3\Documents\GitHub\final-project-catherinecjackson\Needham2012Figure1.PNG)
+![](\Needham2012Figure1.PNG)
 
 These papers all demonstrate that physical differences in the coast as well as climate differences in the storms themselves mean that surge behavior is incredibly spatial.  To accurately protect communities and analyze risk, the spatial trends must be understood and regional data must be included.
-
 
 ## Problem Statement
 
@@ -52,23 +48,18 @@ In the original risk analysis code, a representative storm surge is randomly gen
 
 **The problem that must be addressed, then, is a methodology by which spatial information can be incorporated into the surge function such that the surge is more accurate given the physical characteristics and location of the site.**
 
-Clearly define the problem statement that your chosen feature aims to address.
-Explain the significance of this problem in the context of climate risk management.
+It is important to address this lack of spatial specificity in the current storm surge generation, within the context of climate risk analysis, as, even if the climate risk assessment methodology is appropriate and efficient, it is dependent on the quality of incoming data.  For example, a project could have a statistically sound methodology of determining whether to raise a house given certain flood risks, but if the storm surge distribution used is incorrectly low, the model would incorrectly underestimate the true risk.  Improving data inputs improves the decisions produced by this risk analysis tool.
 
-The following project seeks to improve the quantifiation of flood risk by changing the storm surge distribution to better represent the behavior at the nearest gage.  Currently, an example storm surge distribution is used as a general representation of common surge heights.  However, it is not specific to our site of interest.  Using a Bayesian methodology, this general distribution is used as the prior and data from the nearest gage, in this case Pier 21, is used as the likelihood.  The posterior distribution is then used to generate a new storm surge distribution that is more representative of the site of interest.
-
-In this way, the storm surge distribution is more accurate and can be used to better estimate the flood risk at the site of interest.  Hopefully, this allows us to approximate more accurate risk assessments.
+For these reasons, the surge distribution should be as accurate as possible for the specific site of interest.  The best methodology to do so is to adjust this distribution towards the observational data from the nearest gage.
 
 ## Selected Feature
 
+To address the spatial trends demonstrated in severe storms and associated storm surge, the surge distribution used in risk analysis must be specific to the site of interest.  Therefore, the new addition to the decision-support tool must shift the distribution such that it better represents observed data at the nearest gage.
+
+
+
 Describe the feature you have selected to add to the existing decision-support tool.
 Discuss how this feature relates to the problem statement and its potential to improve climate risk assessment.
-
-# Literature Review
-
-Provide a brief overview of the theoretical background related to your chosen feature.
-Cite at least two relevant journal articles to support your approach (see [Quarto docs](https://quarto.org/docs/authoring/footnotes-and-citations.html) for help with citations).
-Explain how these articles contribute to the justification of your selected feature.
 
 # Methodology
 
