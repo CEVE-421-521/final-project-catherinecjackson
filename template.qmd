@@ -25,7 +25,7 @@ references: references.bib
 # recommended, but not required
 # you will need jupyter-cache installed
 execute: 
-  cache: true
+  cache: false
 ---
 
 # Introduction
