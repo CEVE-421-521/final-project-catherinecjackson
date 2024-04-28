@@ -4,8 +4,6 @@ author: "Catherine Jackson (ccj3)"
 jupyter: julia-1.10
 date: 2024-04-30
 
-# YOU DO NOT NEED BOTH PDF AND DOCX.
-# COMMENT OR DELETE THE ONE YOU DON'T WANT TO USE.
 #
 # Feel free to customize the look of your final document:
 # https://quarto.org/docs/reference/formats/pdf.html
@@ -35,7 +33,24 @@ execute:
 
 # Introduction
 
+## Storm Surge Variability
+
+Hurricanes represent an ever-present threat to US coastlines, and these events have incredible potential to damage infrastructure and threaten lives.  In fast, @ncei2024 found that, when analyzing data from 1980 to 2024, damages from tropical cyclones and severe storms account for 51.8% and 17.3% of climate disaster-related costs.  These severe storms and their associated surge events must be better understood in order to protect communities from their damages.
+
+However, both the frequency and characteristics of these storms and their associated surges is made more complex due to spatial dependencies.  @Needham2012 sought to create a storm surge database based on historical activity.  They argue that this database can be used by communities to better protect themselves based on historical data.  They found that the Central and Western Gulf Coast is particularly vulnerable to hurricanes, both in terms of increased frequency and magnitude, as well as storm surge.  Comparatively, the East Coast experienced less frequenct and smaller events.  Furthermore, @Xu2010 hoped to better understand how the incorporation of multi-scale simulations, but their results also demonstrated that differences in coastal tophography and bathymetry led to large variations in storm surge events. @islam2021new found similar results. After including information about translational speed and coastal geometry, the predictions from their surge index became significantly more accurate.  In this way, @Needham2012 demonstrates that there are significant variations along the US coastline based on hurricane magnitude and frequency, and the associated storm surge, due to important climate variations.  In addition, @Xu2010 and @islam2021new demonstrated that including information about cosatal geometries and bathymetries is important to accurately modeling and predicting surge.  
+
+The image below, from @Needham2012, visually shows the differences in storm surge across the Southern US coastline based on historical information and data.
+
+![](C:\Users\ccj3\Documents\GitHub\final-project-catherinecjackson\Needham2012Figure1.PNG)
+
+These papers all demonstrate that physical differences in the coast as well as climate differences in the storms themselves mean that surge behavior is incredibly spatial.  To accurately protect communities and analyze risk, the spatial trends must be understood and regional data must be included.
+
+
 ## Problem Statement
+
+In the original risk analysis code, a representative storm surge is randomly generated.  This storm surge is represented with a GEV distribution defined by three parameters, each being generated from its own distribution.  Most importantly, though, this function was used to apply regardless of the site of interest.  The same function was used at many different points across the coastline.  As discussed above, however, it is important to include spatial variability given that severe storms and associated surges are highly dependent on the location along the coast and nearby geometry and bathymetry.  
+
+**The problem that must be addressed, then, is a methodology by which spatial information can be incorporated into the surge function such that the surge is more accurate given the physical characteristics and location of the site.**
 
 Clearly define the problem statement that your chosen feature aims to address.
 Explain the significance of this problem in the context of climate risk management.
