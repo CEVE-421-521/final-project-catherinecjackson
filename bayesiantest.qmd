@@ -116,5 +116,6 @@ for i = 1:10
     Plots.plot!(x, y, label="GEV Bayesian", lw=2, color=:blue)
 end
 
+plot1 = Plots.plot!(title="Original GEV Distributions vs. \n Bayesian GEV Distributions")
 display(plot1)
 ```

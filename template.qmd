@@ -4,11 +4,6 @@ author: "Catherine Jackson (ccj3)"
 jupyter: julia-1.10
 date: 2024-04-30
 
-#
-# Feel free to customize the look of your final document:
-# https://quarto.org/docs/reference/formats/pdf.html
-# https://quarto.org/docs/reference/formats/docx.html
-
 format: 
     pdf:
         documentclass: article
@@ -20,7 +15,7 @@ format:
 
 date-format: "ddd., MMM. D"
 
-references: references.bib
+bibliography: references.bib
 
 # recommended, but not required
 # you will need jupyter-cache installed
@@ -32,15 +27,15 @@ execute:
 
 ## Storm Surge Variability and Literature Review
 
-Hurricanes represent an ever-present threat to US coastlines, and these events have incredible potential to damage infrastructure and threaten lives.  In fast, @ncei2024 found that, when analyzing data from 1980 to 2024, damages from tropical cyclones and severe storms account for 51.8% and 17.3% of climate disaster-related costs.  These severe storms and their associated surge events must be better understood in order to protect communities from their damages.
+Hurricanes represent an ever-present threat to US coastlines, and these events have incredible potential to damage infrastructure and threaten lives.  In fact, @ncei2024 found that, when analyzing data from 1980 to 2024, damages from tropical cyclones and severe storms account for 51.8% and 17.3% of climate disaster-related costs respectively.  These severe storms and their associated surge events must be better understood in order to protect communities from their damages.
 
-However, both the frequency and characteristics of these storms and their associated surges is made more complex due to spatial dependencies.  @Needham2012 sought to create a storm surge database based on historical activity.  They argue that this database can be used by communities to better protect themselves based on historical data.  They found that the Central and Western Gulf Coast is particularly vulnerable to hurricanes, both in terms of increased frequency and magnitude, as well as storm surge.  Comparatively, the East Coast experienced less frequenct and smaller events.  Furthermore, @Xu2010 hoped to better understand how the incorporation of multi-scale simulations, but their results also demonstrated that differences in coastal tophography and bathymetry led to large variations in storm surge events. @islam2021new found similar results. After including information about translational speed and coastal geometry, the predictions from their surge index became significantly more accurate.  In this way, @Needham2012 demonstrates that there are significant variations along the US coastline based on hurricane magnitude and frequency, and the associated storm surge, due to important climate variations.  In addition, @Xu2010 and @islam2021new demonstrated that including information about cosatal geometries and bathymetries is important to accurately modeling and predicting surge.  
+However, both the frequency and characteristics of these storms and their associated surges is made more complex due to spatial dependencies.  @Needham2012 sought to create a storm surge database based on historical activity.  They argue that this database can be used by communities to better protect themselves based on historical data.  They found that the Central and Western Gulf Coast is particularly vulnerable to hurricanes, both in terms of increased frequency and magnitude, as well as storm surge.  Comparatively, the East Coast experienced less frequent and smaller events.  Furthermore, @Xu2010 hoped to better understand how the incorporation of multi-scale simulations affected surge predictions, but their results also demonstrated that differences in coastal tophography and bathymetry led to large variations in storm surge events. @islam2021new found similar results. After including information about translational speed and coastal geometry, the predictions from their surge index became significantly more accurate.  In this way, @Needham2012 demonstrates that there are significant variations along the US coastline based on hurricane magnitude and frequency, and the associated storm surge, due to important climate variations.  In addition, @Xu2010 and @islam2021new demonstrated that including information about coastal geometries and bathymetries is important to accurately modeling and predicting surge.  
 
 The image below, from @Needham2012, visually shows the differences in storm surge across the Southern US coastline based on historical information and data.
 
-![](\Needham2012Figure1.PNG)
+![](Needham2012Figure1.PNG)
 
-These papers all demonstrate that physical differences in the coast as well as climate differences in the storms themselves mean that surge behavior is incredibly spatial.  To accurately protect communities and analyze risk, the spatial trends must be understood and regional data must be included.
+In conclusion, these papers all demonstrate that physical differences in the coast as well as climate differences in the storms themselves mean that surge behavior is incredibly spatial.  To accurately protect communities and analyze risk, the spatial trends must be understood and regional data must be included.
 
 ## Problem Statement
 
@@ -56,12 +51,43 @@ For these reasons, the surge distribution should be as accurate as possible for 
 
 To address the spatial trends demonstrated in severe storms and associated storm surge, the surge distribution used in risk analysis must be specific to the site of interest.  Therefore, the new addition to the decision-support tool must shift the distribution such that it better represents observed data at the nearest gage.
 
+Consequently, this selected feature will be a modification of the code that provides a representative storm surge distribution sample.  Note, first, that this code is found in lab code rather than in the HouseElevation.jl file.  Consequently, these adjustments are made within the definition of the function itself.
 
+When selecting the best methodology by which the representative distribution can be shifted such that it better represents the behavior at the specific site of interest, I took inspiration from Dr. Doss-Gollin's CEVE 543 class.  Bayesian updating allows a distribution to be adjusted as new, observed data is produced.  This means that the original surge distribution parameters can be updated using data that comes from the nearest gage, producing distributions more accurate given the physical location of the site.
 
-Describe the feature you have selected to add to the existing decision-support tool.
-Discuss how this feature relates to the problem statement and its potential to improve climate risk assessment.
+Again, this improves the climate risk assessment by using Bayesian updating as a methodology to improve the input data.  A model is only as reliable as the data it uses to make predictions, so improving the surge based on the actual physical location improves the decision outputs of this model.
 
 # Methodology
+
+Inspiration for this methodology is drawn primarily from @ceve543_2023. Slides from this course help describe the general process of Bayesian Updating.  First, a project might have an original distribution, defined by parameters, each with their own probability distributions.  In other words, one of the important parameters might be defined by a Normal distribution (e.g. mean of 5 and standard deviation of 0.5), but it is not a point value.  Furthermore, the project might have a reasonable first guess as to what these distributions could be.  However, as new data is produced, can be update the beliefs about these distributions so they are more accurate.  This is the process of Bayesian Updating.
+
+The slides also define Bayes' rule for distributions as:
+
+$$
+p(\theta | y) \propto p(y | \theta) p(\theta)
+$$
+
+Where:
+
+1. $p(\theta | y)$ is the posterior distribution of the parameters given the data
+
+2. $p(y | \theta)$ is the likelihood of the data given the parameters
+
+3. $p(\theta)$ is the prior distribution of the parameters
+
+In other words, the prior is the best guess before any additional data is produced.  The likelihood tells us how likely the new observational data is given our beliefs within the prior.  We can use the likelihood to update our new beliefs about the distribution.
+
+However, explicitly calculating the posterior can be computationally challenging. Therefore, many models use sampling to reduce this computational load.  This concept can be difficult to conceptualize.  One analogy is to think of the posterior as a mountainous landscape.  Higher peaks represent more likely values of the parameters.  The goal is then to find the highest peak. Instead of solving analytically, the model can "walk around" the landscape to find the best values.
+
+Markov Chain Monte Carlo includes many different methods to walk around the landscape, but in general the process is as follows:
+
+1. Start at a random point in the parameter space
+
+2. Propose a new point in the parameter space
+
+3. Determine whether the new point should be accepted or rejected, dependent on the criteria of the specific method
+
+The end goal is then to sample from the most likely values of the parameters to generate a new, more likely distribution of the original parameters.  For this project, then, Bayesian Updating will produce new distributions for the three parameters that define the GEV distribution.
 
 ## Implementation
 
