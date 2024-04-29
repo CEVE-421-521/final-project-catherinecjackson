@@ -91,24 +91,171 @@ The end goal is then to sample from the most likely values of the parameters to 
 
 ## Implementation
 
-You should make your modifications in either the `HouseElevation` or `ParkingGarage` module.
-Detail the steps taken to implement the selected feature and integrate it into the decision-support tool.
-Include code snippets and explanations where necessary to clarify the implementation process.
+Implementation of this Bayesian Updating methodology is inspired by @storopoli2021bayesianjulia as well as @ceve543_2023.  Primarily, original inspiration for the utilization of the Turing package comes from @ceve543_2023 and plotting implementation from @storopoli2021bayesianjulia.
+
+Again, the edits produced during Bayesian Updating change the storm surge distribution package rather than the code in HouseElevation.jl.  Consequently, changes can be found here in the template.qmd file.
+
+The following code block demonstrates the creation of the model, using Turing, to sample from the posterior distribution of the parameters.  The model is defined as a function, `surge_model`, that takes in the data from the nearest gage.  The model then defines the prior distributions for the three parameters of the GEV distribution.  The model then loops through the data from the nearest gage, defining the likelihood of the data given the parameters.
+
+1. Define the model as a function which inputs gage data
+
+2. Define the prior distributions for the three parameters of the GEV distribution
+
+3. Loop through the gage data, defining the likelihood of the data given the gage surge heights
+
+```{julia}
+#| output: false
+#| echo: false
+
+using Turing
+using Statistics
+using MCMCChains
+using DynamicPPL
+using AdvancedHMC
+using DistributionsAD
+using Bijectors
+using Plots
+using Distributions
+using CairoMakie
+using AlgebraOfGraphics
+using CairoMakie 
+```
+
+```{julia}
+@model function surge_model(y) #<1>
+    μ ~ Normal(5, 1) #<2>
+    σ ~ Exponential(1.25)
+    ξ ~ Normal(0.1, 0.05)
+
+    for i in eachindex(y)
+        y[i] ~ GeneralizedExtremeValue(μ, σ, ξ) #<3>
+    end
+end;
+```
+
+Next, observational data is needed to update the distribution.  Given that the function predicts the maximum surge heigh for a given year, the data for which the distribution needs to be updated is the maximum surge height for the year.  This data is then input into the model to sample from the posterior distribution of the parameters. 
+
+Given that storm surges are inherently spatial, the best data to update our parameter distributions is the data from the nearest gage.  For this particular project, the nearest gage is located in Galveston, Texas on Pier 21 [@noaa2024galveston].  I was able to download the time series information and isolate the highest storm surge for each month.  I then selected the highest storm surge for the year and saved it to the variable dataex.  The information from the past 10 years was then fed into my model.
+
+```{julia}
+#| output: false
+#| echo: false
+
+dataex = [3.97, 3.85, 4.71, 5.39, 3.92, 4.03, 4.03, 3.84, 3.94, 3.03, 3.11];
+```
+
+The following cell pulls in the last 10 years of observational data from the Galveston gage.  This data is then fed into the model to sample from the posterior distribution of the parameters.  The code uses a No U-Turn Sampler (e.g. NUTS) with 1,000 samples.
+
+I have included the original output of the sampler below.
+
+```{julia}
+#| echo: false
+#| output: false
+model = surge_model(dataex)
+chain = sample(model, Turing.NUTS(), 1000)
+```
 
 ## Validation
 
-As we have seen in labs, mistakes are inevitable and can lead to misleading results.
-To minimize the risk of errors making their way into final results, it is essential to validate the implemented feature.
-Describe the validation techniques used to ensure the accuracy and reliability of your implemented feature.
-Discuss any challenges faced during the validation process and how they were addressed.
+Validation for this Bayesian Updating is difficult as the true values of the parameters are unknown.  However, the updated distributions can be used to find an "expected value" of the storm surge.  If this value of storm surge seems reasonable given NOAA gage data, then the Bayesian Updating can be considered successful.
+
+Julia allows users to find the expected value of the distribution using describe(chain) as discussed by @storopoli2021bayesianjulia.  In our project, the expected value of the storm surge distribution is 5.31 feet. This value, when compared to the NOAA gage, seems reasonable and lends credibility to the fact that our updating was successful.
+
+```{julia}
+#| output: false
+#| echo: false
+summaries, quantiles = describe(chain);
+sum([idx * i for (i, idx) in enumerate(summaries[:, :mean])])
+```
+
+However, as mentioned earlier, there are no true distribution parameters.  Our parameters can produce results consistent with available historical data, but only relying on data we have seen in recent years raises issues. The data from the Galveston gage only includes the past 10 years.  This is a very small sample size, and the data may not be representative of the true distribution.  Consequently, the Bayesian Updating may not be as accurate as it could be if more data were available.  Furthermore, we determine whether our distribution seems consistent with recent data, but we have no way of determining whether our distribution would be consistent with changes in the future. 
 
 # Results
 
-Present the results obtained from the enhanced decision-support tool.
-Use tables, figures, and visualizations to clearly communicate the outcomes.
-Provide sufficient detail to demonstrate how the implemented feature addresses the problem statement.
-Use the `#| output: false` and/or `#| echo: false` tags to hide code output and code cells in the final report except where showing the output (e.g.g, a plot) or the code (e.g., how you are sampling SOWs) adds value to the discussion.
-You may have multiple subsections of results, which you can create using `##`.
+First, when analyzing the results, both the sampling from the posterior as well as the new distributions of the parameters can be plotted.
+
+```{julia}
+#| echo: false
+#| output: false
+params = names(chain, :parameters)
+chain_mapping = mapping(params .=> "sample value") *
+                mapping(; color=:chain => nonnumeric, row=dims(1) => renamer(params))
+plt1 = AlgebraOfGraphics.data(chain) * mapping(:iteration) * chain_mapping * visual(Lines)
+plt2 = AlgebraOfGraphics.data(chain) * chain_mapping * AlgebraOfGraphics.density()  
+
+f = Figure(; resolution=(800, 600))
+draw!(f[1, 1], plt1)
+draw!(f[1, 2], plt2; axis=(; ylabel="density"))
+display(f)
+```
+
+![]("ceve521newparameterdistributions.png")
+
+These new distributions, shown in the plots on the right, are more consistent with real, observed data from the Pier 21 gage on Galveston, TX.  Again, this improves the spatial accuracy of the storm surge trends.
+
+Then, these new parameter distributions are used to create a new function which now draws a random storm surge given the information from the Bayesin updating.
+
+```{julia}
+#| echo: false
+#| output: false
+function draw_surge_dist_bayesian()
+    randindex = rand(1:length(chain))
+    μ = chain[:μ][randindex]
+    σ = chain[:σ][randindex]
+    ξ = chain[:ξ][randindex]
+    return GeneralizedExtremeValue(μ, σ, ξ)
+end
+```
+
+The difference between the draws from the original GEV distribution and the draws from the Bayesian-updated GEV distribution can be seen below.  Note that the figure shows 10 random draws from the different functions.
+
+```{julia}
+#| echo: false
+#| output: false
+function draw_surge_distribution()
+    μ = rand(Normal(5, 1))
+    σ = rand(Exponential(1.25))
+    ξ = rand(Normal(0.1, 0.05))
+    return GeneralizedExtremeValue(μ, σ, ξ)
+end
+
+gev1 = draw_surge_distribution()
+gevbayes = draw_surge_dist_bayesian()
+x = range(0, 10, length=1000)
+y = pdf(gev1, x)
+plot1 = Plots.plot(x, y, label="Original GEV", lw=2, color=:red, legend=true, xlabel="Surge Height (m)", ylabel="Density")
+
+for i = 1:10
+    gevorigfor = draw_surge_distribution()
+    y = pdf(gevorigfor, x)
+    Plots.plot!(x, y, label="Original GEV", lw=2, color=:red, legend=false)
+end
+
+x = range(0, 10, length=1000)
+y = pdf(gevbayes, x)
+Plots.plot!(x, y, label="GEV Bayesian", lw=2)
+
+for i = 1:10
+    gevbayesfor = draw_surge_dist_bayesian()
+    y = pdf(gevbayesfor, x)
+    Plots.plot!(x, y, label="GEV Bayesian", lw=2, color=:blue)
+end
+
+plot1 = Plots.plot!(title="Original GEV Distributions vs. \n Bayesian GEV Distributions")
+display(plot1)
+```
+
+![]("ceve521image2.png")
+
+Note that the draws from the bayesian updated GEV distribtion are more concentrated and experience less variability between draws.  This represents a key tradeoff.  The Bayesian updated distribution is more accurate and consistent given the gage data on which it was trained.  This means that it is consistent with the spatial trends in that area, due both to spatial trends in climatology and nearby coastal geometry and bathymetry. However, it is updated only on limited historical data.  This means it may not generalize out as well to the future, and it might be less robust to any quick or extreme changes.  
+
+This question is part of a larger question of balancing accuracy with historical data and availability to generalize well to other conditions.  In other words, it helps represent the balance between bias and variance in the model.  The Bayesian updated distribution is more biased towards the historical data, but it may have less variance in the future.  The original GEV distribution is less biased towards the historical data, but it may have more variance in the future.
+
+In this way, this Bayesian updating is an important first step in including spatial trends in storm surge into our surge draw function.  However, future work must consider the balance between incorporating this spatial trend and representing historical data well with the need to generalize to future conditions.
+
+Hypothetically, the Bayesian updating could be improved by adding an additional parameter which includes non-stationarity.  This parameter could represent the change in the distribution over time.  This would allow the model to update the distribution based on the most recent data, but also to consider how the distribution might change in the future.  This would help the model generalize better to future conditions.  On the other hand, this Bayesian updating could be improved by using Bayes' theorem to shift the distribution based on historical data and then adding more variance back in.
+
+In general, it is a future area of research with signficant potential for exploration.
 
 # Conclusions
 
