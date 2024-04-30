@@ -215,7 +215,8 @@ npvs_moore = [
 and plot
 
 ```{julia}
-plot(
+using Plots
+Plots.plot(
     elevations_try,
     npvs_opt ./ 1000;
     xlabel="Elevation [ft]",
@@ -223,7 +224,7 @@ plot(
     label="First $(N_SOW_opt) SOWs",
     marker=:circle,
 )
-plot!(elevations_try, npvs_moore ./ 1000; label="First $(N_more) SOWs", marker=:circle)
+Plots.plot!(elevations_try, npvs_moore ./ 1000; label="First $(N_more) SOWs", marker=:circle)
 vline!([minimizer(result)]; label="Optimal", linestyle=:dash)
 ```
 

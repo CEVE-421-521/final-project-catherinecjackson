@@ -17,8 +17,6 @@ date-format: "ddd., MMM. D"
 
 bibliography: references.bib
 
-# recommended, but not required
-# you will need jupyter-cache installed
 execute: 
   cache: false
 ---
@@ -29,7 +27,7 @@ execute:
 
 Hurricanes represent an ever-present threat to US coastlines, and these events have incredible potential to damage infrastructure and threaten lives.  In fact, @ncei2024 found that, when analyzing data from 1980 to 2024, damages from tropical cyclones and severe storms account for 51.8% and 17.3% of climate disaster-related costs respectively.  These severe storms and their associated surge events must be better understood in order to protect communities from their damages.
 
-However, both the frequency and characteristics of these storms and their associated surges is made more complex due to spatial dependencies.  @Needham2012 sought to create a storm surge database based on historical activity.  They argue that this database can be used by communities to better protect themselves based on historical data.  They found that the Central and Western Gulf Coast is particularly vulnerable to hurricanes, both in terms of increased frequency and magnitude, as well as storm surge.  Comparatively, the East Coast experienced less frequent and smaller events.  Furthermore, @Xu2010 hoped to better understand how the incorporation of multi-scale simulations affected surge predictions, but their results also demonstrated that differences in coastal tophography and bathymetry led to large variations in storm surge events. @islam2021new found similar results. After including information about translational speed and coastal geometry, the predictions from their surge index became significantly more accurate.  In this way, @Needham2012 demonstrates that there are significant variations along the US coastline based on hurricane magnitude and frequency, and the associated storm surge, due to important climate variations.  In addition, @Xu2010 and @islam2021new demonstrated that including information about coastal geometries and bathymetries is important to accurately modeling and predicting surge.  
+However, both the frequency and characteristics of these storms and their associated surges is made more complex due to spatial dependencies.  @Needham2012 sought to create a storm surge database based on historical activity.  They argue that this database can be used by communities to better protect themselves based on historical data.  They found that the Central and Western Gulf Coast is particularly vulnerable to hurricanes, both in terms of increased frequency and magnitude, as well as storm surge.  Comparatively, the East Coast experienced less frequent and smaller events.  Furthermore, @Xu2010 hoped to better understand how the incorporation of multi-scale simulations affected surge predictions, but their results also demonstrated that differences in coastal topography and bathymetry led to large variations in storm surge events. @islam2021new found similar results. After including information about translational speed and coastal geometry, the predictions from their surge index became significantly more accurate.  In this way, @Needham2012 demonstrates that there are significant variations along the US coastline based on hurricane magnitude and frequency, and the associated storm surge, due to important climate variations.  In addition, @Xu2010 and @islam2021new demonstrated that including information about coastal geometries and bathymetries is important to accurately modeling and predicting surge.  
 
 The image below, from @Needham2012, visually shows the differences in storm surge across the Southern US coastline based on historical information and data.
 
@@ -59,7 +57,7 @@ Again, this improves the climate risk assessment by using Bayesian updating as a
 
 # Methodology
 
-Inspiration for this methodology is drawn primarily from @ceve543_2023. Slides from this course help describe the general process of Bayesian Updating.  First, a project might have an original distribution, defined by parameters, each with their own probability distributions.  In other words, one of the important parameters might be defined by a Normal distribution (e.g. mean of 5 and standard deviation of 0.5), but it is not a point value.  Furthermore, the project might have a reasonable first guess as to what these distributions could be.  However, as new data is produced, can be update the beliefs about these distributions so they are more accurate.  This is the process of Bayesian Updating.
+Inspiration for this methodology is drawn primarily from @ceve543_2023. Slides from this course help describe the general process of Bayesian Updating.  First, a project might have an original distribution, defined by parameters, each with their own probability distributions.  In other words, a parameters might be defined by a Normal distribution (e.g. mean of 5 and standard deviation of 0.5), but it is not a point value.  Furthermore, the project might have a reasonable first guess as to what these distributions could be.  However, as new data is produced, this first guess can be updated so they are more accurate.  
 
 The slides also define Bayes' rule for distributions as:
 
@@ -133,7 +131,7 @@ using CairoMakie
 end;
 ```
 
-Next, observational data is needed to update the distribution.  Given that the function predicts the maximum surge heigh for a given year, the data for which the distribution needs to be updated is the maximum surge height for the year.  This data is then input into the model to sample from the posterior distribution of the parameters. 
+Next, observational data is needed to update the distribution.  Given that the function predicts the maximum surge height for a given year, the data for which the distribution needs to be updated is the maximum surge height for the year.  This data is then input into the model to sample from the posterior distribution of the parameters. 
 
 Given that storm surges are inherently spatial, the best data to update our parameter distributions is the data from the nearest gage.  For this particular project, the nearest gage is located in Galveston, Texas on Pier 21 [@noaa2024galveston].  I was able to download the time series information and isolate the highest storm surge for each month.  I then selected the highest storm surge for the year and saved it to the variable dataex.  The information from the past 10 years was then fed into my model.
 
@@ -168,11 +166,11 @@ summaries, quantiles = describe(chain);
 sum([idx * i for (i, idx) in enumerate(summaries[:, :mean])])
 ```
 
-However, as mentioned earlier, there are no true distribution parameters.  Our parameters can produce results consistent with available historical data, but only relying on data we have seen in recent years raises issues. The data from the Galveston gage only includes the past 10 years.  This is a very small sample size, and the data may not be representative of the true distribution.  Consequently, the Bayesian Updating may not be as accurate as it could be if more data were available.  Furthermore, we determine whether our distribution seems consistent with recent data, but we have no way of determining whether our distribution would be consistent with changes in the future. 
+However, though this validation tells us that the Bayesian updating did in fact update our parameter distributions and produces expected surge values which are reasonable, this cannot definitively prove that these new distributions are correct.  There are no "true" parameter values to which we can compare, and we can only definitively show that these new distributions are plausible and possible given historical data.
 
 # Results
 
-First, when analyzing the results, both the sampling from the posterior as well as the new distributions of the parameters can be plotted.
+First, when analyzing the results, both the sampling from the posterior as well as the new distributions of the parameters can be plotted.  Again, plotting guidance came from @storopoli2021bayesianjulia.  Note that the plots on the left show the sampler as it moves through the posterior space.  These sampler plots show good convergence, supporting the belief that the sampler is effecive.  Furthermore, the plots on the right show the new distributions of the parameters.
 
 ```{julia}
 #| echo: false
@@ -191,13 +189,11 @@ display(f)
 
 ![]("ceve521newparameterdistributions.png")
 
-These new distributions, shown in the plots on the right, are more consistent with real, observed data from the Pier 21 gage on Galveston, TX.  Again, this improves the spatial accuracy of the storm surge trends.
+These new distributions are more consistent with real, observed data from the Pier 21 gage on Galveston, TX.  In other words, for these new parameter distributions, the maximum surge we have seen at Pier 21 gage is more likely than if the original parameter distributions were true.  This supports the idea of the new, Bayesian updated distributions producing storm surge which is more accurate for our particular site and its physical location and geography.
 
-Then, these new parameter distributions are used to create a new function which now draws a random storm surge given the information from the Bayesin updating.
+Then, these new parameter distributions are used to create a new function which now draws a random storm surge given the information from the Bayesin updating.  It is defined by randomly selecting an index within the chain and pulling the three parameters at that index.  It would be incorrect to sample an independent draw from each parameter independently as the parameters are correlated.  The function is defined below.
 
 ```{julia}
-#| echo: false
-#| output: false
 function draw_surge_dist_bayesian()
     randindex = rand(1:length(chain))
     μ = chain[:μ][randindex]
@@ -257,18 +253,161 @@ Hypothetically, the Bayesian updating could be improved by adding an additional 
 
 In general, it is a future area of research with signficant potential for exploration.
 
+## Policy Search
+
+We can also explore what happens when we use this new Bayesian-updated distributions in our policy search.
+
+```{julia}
+#| echo: false
+#| output: false
+
+using Revise
+using HouseElevation
+
+using CSV
+using DataFrames
+using DataFramesMeta
+using Distributions
+using LaTeXStrings
+using Metaheuristics
+using Plots
+using Random
+using Unitful
+
+Plots.default(; margin=5Plots.mm)
+```
+
+Compared to the analysis in Lab 06, the difference between these codes is the inclusion of the Bayesian parameter distributions rather than the original distributions.
+
+```{julia}
+#| echo: false
+#| output: false
+
+slr_scenarios = let
+    df = CSV.read("data/slr_oddo.csv", DataFrame)
+    [Oddo17SLR(a, b, c, tstar, cstar) for (a, b, c, tstar, cstar) in eachrow(df)]
+end
+
+house = let
+    haz_fl_dept = CSV.read("data/haz_fl_dept.csv", DataFrame) # read in the file
+    desc = "two story, no basement, Structure"
+    occ = "RES1"
+    src = "USACE - Galveston"
+    row = @rsubset(haz_fl_dept, :Description == desc, :Occupancy == occ, :Source == src)[1, :] 
+    area = 881u"ft^2"
+    height_above_gauge = 4*u"ft"
+    House(row; area=area, height_above_gauge=height_above_gauge, value_usd=194_456)
+end
+
+p = ModelParams(; house=house, years=2024:2083)
+
+function draw_surge_dist_bayesian()
+    randindex = rand(1:length(chain))
+    μ = chain[:μ][randindex]
+    σ = chain[:σ][randindex]
+    ξ = chain[:ξ][randindex]
+    return GeneralizedExtremeValue(μ, σ, ξ)
+end
+
+function draw_discount_rate()
+    draw = rand(Normal(0.04, 0.02))
+    if draw < 0
+        return 0.001
+    else
+        return draw
+    end
+end
+
+N_SOW = 100
+sows = [
+    SOW(rand(slr_scenarios), draw_surge_dist_bayesian(), draw_discount_rate()) for
+    _ in 1:N_SOW
+] 
+```
+
+```{julia}
+#| echo: false
+#| output: false
+
+Random.seed!(2024) ; #<1>
+N_SOW = 100_000 ; #<2>
+sows = [
+    SOW(rand(slr_scenarios), draw_surge_dist_bayesian(), draw_discount_rate()) for _ in 1:N_SOW
+    ] ;
+N_SOW_opt = 300 ; #<3>
+sows_opt = sows[1:N_SOW_opt] ;
+```
+
+```{julia}
+#| echo: false
+#| output: false
+
+function objective_function_scalar(a::Float64)
+    action = Action(a*u"ft") #<1>
+
+    expected_values = [run_sim(action, sow, p) for sow in sows_opt] #<2>
+
+    return -sum(expected_values) #<3>
+end
+
+function objective_function(a::Vector{Float64})
+    action = Action(a[1]*u"ft") #<1>
+
+    expected_values = [run_sim(action, sow, p) for sow in sows_opt] #<2>
+
+    return -sum(expected_values) #<3>
+end
+```
+
+```{julia}
+#| echo: false
+#| output: false
+
+bounds = boxconstraints(; lb=0.0, ub=14.0) #<1>
+options = Options(; time_limit=120.0) #<2>
+algorithm = ECA(; options=options) #<3>
+result = optimize(objective_function, bounds, algorithm) #<4>
+``` 
+
+```{julia}
+#| echo: false
+#| output: false
+
+elevations = range(0; stop=14, length=100) #<1>
+objective_values = [objective_function_scalar(e) for e in elevations] #<2>
+Plots.plot(elevations, objective_values; xlabel="Elevation (ft)", ylabel="Objective function value", label="", title="Objective function for different elevations, 
+Number of SOWs = $N_SOW_opt") #<3>
+```
+
+This code determines that the minimizing height is 8.30284 feet.  This is the height that minimizes the cost of damages and construction across all states of the world. 
+
+On the other hand, the minimizer found with the original distribution function was 13.23 feet.  
+
+Noteably, using gage data to include spatial trends within our storm surge analysis (e.g. to make the distributions more coherent with the physical location of the site) has a significant impact on the policy search.  The height that minimizes the cost of damages and construction is significantly lower when using the Bayesian-updated distribution.  This suggests that the Bayesian-updated distribution has shifted the distributions lower based on the gage data.
+
+## Limitations
+
+This result of lowering the recommended house elevation height, though it does show the impact of using Bayes' theorem to update the storm surge distribution, also suggests some limitations of this methodology. 
+
+1. As mentioned above, this usage of Bayesian Updating represents a key tradeoff between performing well on historical data but failing to generalize well into the future.  There is a danger of overfitting to what we have seen in previous years, to the point of performing well when new conditions arise.  It is an area that must be considered, but again storm surge is inherently spatial, and we must have some way of representing the physical location.
+
+2. The gage data itself to which the model was adapted is not ideal.  I had difficulty answering this question, but it seemed that NOAA was finding the maximum height but averaged across the study period.  In other words, it was smoothing the results.  This was extremely evident in a 1 hour time step as the surge was heavily averaged and, consequently, the highest peak was greatly decreased.  I combatted this by using the smallest time step, 6 minutes, but this still represents a significant smoothing.  This could have potentially, artifically lowered the storm surge maximums, causing the distributions to shift lower as we saw in the policy search.
+
+3. Another limitation is the lack of a true validation set.  The Bayesian updating was validated by comparing the expected value of the distribution to the gage data, but this is not a true validation.  There is no true validation set to which we can compare the new distributions.  This means that we cannot definitively say that the new distributions are correct.  We can only say that they are plausible given the historical data.
+
+4. Limited historical data also causes issues.  Firstly, it is difficult to access these storm surge maximums as NOAA limits the amount of data that can be exported at a time.  This means that, for each year, 12 individual spreadsheets had to be downloaded and sorted to find maximums.  In this way, the availability of the data made it difficult to pull many different years.  In addition, I did not want to go too far back because, if storm surge is non-stationary, the data from 20 years ago may not be representative of the data today.  The farther back I went, the increased risk of predicting to the wrong distribution.  For this reason, there is another important tradeoff here in including enough data to not be skewed to the most recent years, which could be quite random or unusual, while still avoiding problems with non-stationarity.
+
 # Conclusions
 
-## Discussion
+The most important implication of this project is the inclusion of spatial trends in storm surge into the decision-support tool.  As discussed in the articles, factors like climatology of the storms themselves as well as bathymetry, topography, and coastal geometry impact storm surge.  This means that a singular storm surge distribution should likely not be used to represent surge along the entire US coast.  There are important distinctions that must be made.
 
-Analyze the implications of your results for climate risk management.
-Consider the context of the class themes and discuss how your findings contribute to the understanding of climate risk assessment.
-Identify any limitations of your approach and suggest potential improvements for future work.
+This project used Bayesian Updating to make the generalized storm surge distribution more specific to the site of interest.  This was done by updating the parameters of the GEV distribution based on the nearest gage data, Pier 21 in Galveston.  The new parameter distributions produced expected surge values consistent with historical data, a validation that showed the results were at least plausible.  These new distributions were also used to reconduct the policy search analysis, showing a clear impact as they lowered the recommended elevation height.
 
-## Conclusions
+This finding was particularly interesting.  It is possible that this finding is representative of the fact that this gage and the site of interest are on the back side of Galveston island rather than the side exposed to direct surge.  This might mean that the surge experienced here is tapered compared to the South side.  However, it is also possible that these distribtions were artifically lowered due to the averaging that occurs in NOAA gage data.  This is definitely an area for further work.
 
-Summarize the key findings of your project and reiterate the significance of your implemented feature in addressing the problem statement.
-Discuss the broader implications of your work for climate risk management and the potential for further research in this area.
+There are additional limitations to this methodology.  Primarily, it raises important questions of the relative need to perform well on historical data and reasonably fit nearby spatial data versus adjusting and adapting well to the future or new conditions.  Furthermore, the lack of a true validation set and the limited historical data available are important limitations to consider.
+
+In general, this project starts the exploration of including spatial trends in storm surge into the decision-support tool.  It is an important first step in improving the accuracy of the storm surge distribution used in the tool.  However, there are important tradeoffs to consider in this methodology, and future work must consider these tradeoffs and potential improvements.
 
 # References
 
