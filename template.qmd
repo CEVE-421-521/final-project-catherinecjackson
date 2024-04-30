@@ -147,8 +147,6 @@ The following cell pulls in the last 10 years of observational data from the Gal
 I have included the original output of the sampler below.
 
 ```{julia}
-#| echo: false
-#| output: false
 model = surge_model(dataex)
 chain = sample(model, Turing.NUTS(), 1000)
 ```
